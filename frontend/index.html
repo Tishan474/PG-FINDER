@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NestNear – PG Finder</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css">
+</head>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="logo">Nest<span>Near</span></div>
+    <div class="nav-links">
+      <a href="#" onclick="showListView(); return false;">Explore</a>
+   <a href="#" onclick="showMapView(); return false;">Map View</a>
+    <a href="create-pg.html">List your PG</a>
+    </div>
+    <!-- Auth section injected by JS -->
+    <div id="nav-auth" class="nav-actions"></div>
+  </nav>
+
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-badge"><span class="dot"></span> 47 new listings this week</div>
+    <h1>Find your perfect<br><em>PG near campus</em></h1>
+    <p class="hero-sub">Affordable paying guest accommodations within walking distance of your institute. No broker
+      fees.</p>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search by area, institute or landmark…"
+        oninput="filterCards()" />
+      <button onclick="filterCards()">Search</button>
+    </div>
+
+    <div class="filters">
+      <div class="filter-chip active" onclick="setFilter(this,'all')">All</div>
+      <div class="filter-chip" onclick="setFilter(this,'boys')">Boys</div>
+      <div class="filter-chip" onclick="setFilter(this,'girls')">Girls</div>
+      <div class="filter-chip" onclick="setFilter(this,'co-ed')">Co-ed</div>
+      <div class="filter-chip" onclick="setPriceFilter(this,'budget')">Under ₹5,000</div>
+      <div class="filter-chip" onclick="setPriceFilter(this,'mid')">₹5k–8k</div>
+      <div class="filter-chip" onclick="setPriceFilter(this,'premium')">₹8k+</div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-num">124</div>
+      <div class="stat-label">Active Listings</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">0.8 km</div>
+      <div class="stat-label">Avg. Distance</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">₹4,200</div>
+      <div class="stat-label">Avg. Monthly Rent</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">4.3 ★</div>
+      <div class="stat-label">Avg. Rating</div>
+    </div>
+  </div>
+
+
+    <!-- LISTINGS -->
+    <div class="listings">
+      <div class="listings-header">
+        <div class="listings-count"><strong id="countLabel">8</strong> PGs found near your area</div>
+        <select class="sort-select" onchange="sortCards(this.value)">
+          <option value="price">Sort: Price ↑</option>
+          <option value="rating">Sort: Rating ↓</option>
+          <option value="distance">Sort: Distance ↑</option>
+        </select>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modal" onclick="closeModal(event)">
+    <div class="modal" id="modalContent">
+      <div class="modal-hero">
+        <img id="modalImg" class="modal-hero-img" src="" alt="" />
+        <button class="modal-close" onclick="closeModalDirect()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-title" id="modalName"></div>
+        <div class="modal-loc" id="modalLoc"></div>
+        <div class="modal-row" id="modalStats"></div>
+        <div class="section-label">Amenities</div>
+        <div class="amenities-grid" id="modalAmenities"></div>
+        <div class="section-label">About</div>
+        <p id="modalDesc" style="font-size:0.88rem;color:var(--muted);line-height:1.7;margin-bottom:22px;"></p>
+        <div class="modal-cta">
+          <button class="btn-primary" onclick="showToast('📞 Contact request sent!')">Contact Owner</button>
+          <button class="btn-secondary" onclick="showToast('❤️ Saved to wishlist!')">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <span class="toast-icon" id="toastIcon">✅</span>
+    <span id="toastMsg">Done!</span>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</body>
+
+</html>

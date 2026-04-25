@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login – NestNear</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .auth-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+    }
+
+    /* Ambient glow behind the card */
+    .auth-page::after {
+      content: '';
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -60%);
+      width: 700px; height: 500px;
+      background: radial-gradient(ellipse, rgba(247,199,83,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .auth-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 48px 44px;
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      z-index: 1;
+      animation: scaleIn 0.35s ease both;
+    }
+
+    .auth-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.82rem;
+      margin-bottom: 36px;
+      transition: color 0.2s;
+    }
+    .auth-back:hover { color: var(--text); }
+    .auth-back svg { width: 14px; height: 14px; }
+
+    .auth-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.3rem;
+      letter-spacing: -0.04em;
+      margin-bottom: 28px;
+    }
+    .auth-logo span { color: var(--accent); }
+
+    .auth-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.9rem;
+      letter-spacing: -0.03em;
+      margin-bottom: 6px;
+      line-height: 1.1;
+    }
+
+    .auth-subtitle {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 36px;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 8px;
+      font-family: 'Syne', sans-serif;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .form-input::placeholder { color: var(--muted); }
+    .form-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(247,199,83,0.12);
+    }
+
+    .form-input-wrap {
+      position: relative;
+    }
+    .form-input-wrap .toggle-pw {
+      position: absolute;
+      right: 14px; top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 4px;
+      font-family: 'DM Sans', sans-serif;
+      transition: color 0.2s;
+    }
+    .form-input-wrap .toggle-pw:hover { color: var(--text); }
+
+    .btn-auth {
+      width: 100%;
+      background: var(--accent);
+      color: #0d0f14;
+      border: none;
+      padding: 15px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      font-family: 'Syne', sans-serif;
+      letter-spacing: 0.01em;
+      margin-top: 8px;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-auth:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(247,199,83,0.28);
+    }
+    .btn-auth:active { transform: translateY(0); }
+
+    .btn-auth.loading {
+      opacity: 0.65;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .auth-divider span { color: var(--muted); font-size: 0.75rem; }
+
+    .auth-switch {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-top: 24px;
+    }
+    .auth-switch a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+    .auth-switch a:hover { opacity: 0.8; }
+
+    .error-msg {
+      color: #ff6b4a;
+      font-size: 0.82rem;
+      margin-top: 6px;
+      display: none;
+    }
+    .error-msg.show { display: block; }
+
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.96) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      .auth-card { padding: 32px 24px; }
+      .auth-title { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+
+      <a href="index.html" class="auth-back">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10 12L6 8l4-4"/>
+        </svg>
+        Back to NestNear
+      </a>
+
+      <div class="auth-logo">Nest<span>Near</span></div>
+
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-subtitle">Sign in to browse PGs near your campus.</div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email</label>
+        <input class="form-input" type="email" id="email" placeholder="you@example.com" autocomplete="email" />
+        <div class="error-msg" id="emailErr">Please enter a valid email.</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <div class="form-input-wrap">
+          <input class="form-input" type="password" id="password" placeholder="Enter your password" autocomplete="current-password" style="padding-right: 60px;" />
+          <button class="toggle-pw" onclick="togglePw('password', this)" type="button">Show</button>
+        </div>
+        <div class="error-msg" id="pwErr">Password cannot be empty.</div>
+      </div>
+
+      <button class="btn-auth" id="loginBtn" onclick="handleLogin()">Sign In →</button>
+
+      <div class="auth-switch">
+        Don't have an account? <a href="signup.html">Sign up free</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    function togglePw(id, btn) {
+      const input = document.getElementById(id);
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = 'Hide';
+      } else {
+        input.type = 'password';
+        btn.textContent = 'Show';
+      }
+    }
+
+    // Override handleLogin to add loading state + inline errors
+    function handleLogin() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const emailErr = document.getElementById('emailErr');
+      const pwErr = document.getElementById('pwErr');
+      let valid = true;
+
+      emailErr.classList.remove('show');
+      pwErr.classList.remove('show');
+
+      if (!email || !email.includes('@')) { emailErr.classList.add('show'); valid = false; }
+      if (!password) { pwErr.classList.add('show'); valid = false; }
+      if (!valid) return;
+
+      const btn = document.getElementById('loginBtn');
+      btn.classList.add('loading');
+      btn.textContent = 'Signing in…';
+
+      loginUser(email, password).finally(() => {
+        btn.classList.remove('loading');
+        btn.textContent = 'Sign In →';
+      });
+    }
+  </script>
+</body>
+</html>

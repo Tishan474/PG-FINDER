@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>List Your PG – NestNear</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── Page layout ── */
+    .create-page {
+      min-height: 100vh;
+      padding: 48px 20px 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    /* Ambient accent glow */
+    .create-page::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 700px; height: 400px;
+      background: radial-gradient(ellipse, rgba(247,199,83,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      text-align: center;
+      margin-bottom: 40px;
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .page-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+    .page-badge .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.9rem, 4vw, 2.8rem);
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+    .page-title em { color: var(--accent); font-style: normal; }
+
+    .page-sub {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* ── Form card ── */
+    .form-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 40px 44px;
+      width: 100%;
+      max-width: 680px;
+      position: relative;
+      z-index: 1;
+      animation: scaleIn 0.4s ease both;
+    }
+
+    /* ── Section dividers ── */
+    .form-section {
+      margin-bottom: 32px;
+    }
+    .form-section-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Field groups ── */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-group:last-child { margin-bottom: 0; }
+
+    .form-label {
+      display: block;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 8px;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 13px 16px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .form-input::placeholder,
+    .form-textarea::placeholder { color: var(--muted); }
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(247,199,83,0.12);
+    }
+
+    /* Select with custom arrow */
+    .select-wrap {
+      position: relative;
+    }
+    .select-wrap::after {
+      content: '▾';
+      position: absolute;
+      right: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.85rem;
+      pointer-events: none;
+    }
+    .form-select {
+      cursor: pointer;
+      padding-right: 38px;
+    }
+    .form-select option { background: var(--card2); }
+
+    /* Textarea */
+    .form-textarea {
+      resize: vertical;
+      min-height: 110px;
+      line-height: 1.6;
+    }
+
+    /* Input with prefix icon */
+    .input-wrap {
+      position: relative;
+    }
+    .input-prefix {
+      position: absolute;
+      left: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+    .input-wrap .form-input { padding-left: 32px; }
+
+    /* Validation error */
+    .error-msg {
+      color: #ff6b4a;
+      font-size: 0.8rem;
+      margin-top: 5px;
+      display: none;
+    }
+    .error-msg.show { display: block; }
+
+    /* ── Gender pills ── */
+    .gender-group {
+      display: flex;
+      gap: 10px;
+    }
+    .gender-pill {
+      flex: 1;
+      text-align: center;
+      padding: 11px 8px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      color: var(--muted);
+      background: var(--card2);
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .gender-pill:hover { border-color: var(--muted); color: var(--text); }
+    .gender-pill.selected {
+      background: rgba(247,199,83,0.12);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ── Submit button ── */
+    .btn-submit {
+      width: 100%;
+      background: var(--accent);
+      color: #0d0f14;
+      border: none;
+      padding: 16px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      font-family: 'Syne', sans-serif;
+      letter-spacing: 0.01em;
+      margin-top: 8px;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-submit:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 32px rgba(247,199,83,0.28);
+    }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-submit.loading {
+      opacity: 0.65;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* ── Divider ── */
+    .form-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 28px 0;
+    }
+
+    /* ── Auth guard banner ── */
+    .auth-guard {
+      display: none;
+      background: rgba(255, 107, 74, 0.08);
+      border: 1px solid rgba(255, 107, 74, 0.25);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 0.88rem;
+      color: #ff6b4a;
+      margin-bottom: 24px;
+      align-items: center;
+      gap: 10px;
+    }
+    .auth-guard.show { display: flex; }
+    .auth-guard a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    .auth-guard a:hover { text-decoration: underline; }
+
+    /* ── Tip box ── */
+    .tip-box {
+      background: rgba(247,199,83,0.06);
+      border: 1px solid rgba(247,199,83,0.18);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 0.83rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-top: 24px;
+    }
+    .tip-box strong { color: var(--accent); }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .form-card { padding: 28px 22px; }
+      .form-row { grid-template-columns: 1fr; }
+      .page-title { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="logo">Nest<span>Near</span></div>
+    <div class="nav-links">
+      <a href="index.html">Explore</a>
+      <a href="index.html" onclick="showMapView && showMapView(); return true;">Map View</a>
+      <a href="create-pg.html" style="color: var(--accent);">List your PG</a>
+    </div>
+    <div id="nav-auth" class="nav-actions"></div>
+  </nav>
+
+  <div class="create-page">
+
+    <!-- Header -->
+    <div class="page-header">
+      <div class="page-badge"><span class="dot"></span> Free to list</div>
+      <div class="page-title">List your <em>PG on NestNear</em></div>
+      <p class="page-sub">Reach hundreds of students looking for accommodation near campus.</p>
+    </div>
+
+    <!-- Form card -->
+    <div class="form-card">
+
+      <!-- Auth guard (shown if not logged in) -->
+      <div class="auth-guard" id="authGuard">
+        ⚠️ You need to <a href="login.html">log in</a> or <a href="signup.html">sign up</a> before listing a PG.
+      </div>
+
+      <form id="pgForm" onsubmit="handleSubmitPG(event)" novalidate>
+
+        <!-- Basic Info -->
+        <div class="form-section">
+          <div class="form-section-label">Basic Information</div>
+
+          <div class="form-group">
+            <label class="form-label" for="name">PG Name</label>
+            <input class="form-input" type="text" id="name" placeholder="e.g. Sunrise PG Home" autocomplete="off" />
+            <div class="error-msg" id="nameErr">Please enter a PG name.</div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="area">Area / Locality</label>
+              <input class="form-input" type="text" id="area" placeholder="e.g. Kahilipara" />
+              <div class="error-msg" id="areaErr">Please enter an area.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="city">City</label>
+              <input class="form-input" type="text" id="city" placeholder="e.g. Guwahati" />
+              <div class="error-msg" id="cityErr">Please enter a city.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pricing & Type -->
+        <div class="form-section">
+          <div class="form-section-label">Pricing &amp; Type</div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="price">Monthly Rent (₹)</label>
+              <div class="input-wrap">
+                <span class="input-prefix">₹</span>
+                <input class="form-input" type="number" id="price" placeholder="4500" min="500" max="100000" />
+              </div>
+              <div class="error-msg" id="priceErr">Please enter a valid price.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">PG Type</label>
+              <div class="gender-group" id="genderGroup">
+                <div class="gender-pill selected" data-val="boys" onclick="selectGender(this)">♂ Boys</div>
+                <div class="gender-pill" data-val="girls" onclick="selectGender(this)">♀ Girls</div>
+                <div class="gender-pill" data-val="co-ed" onclick="selectGender(this)">⚥ Co-ed</div>
+              </div>
+              <input type="hidden" id="gender" value="boys" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Location -->
+        <div class="form-section">
+          <div class="form-section-label">Location Coordinates</div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="latitude">Latitude</label>
+              <input class="form-input" type="number" id="latitude" placeholder="26.1445" step="any" />
+              <div class="error-msg" id="latErr">Enter a valid latitude.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="longitude">Longitude</label>
+              <input class="form-input" type="number" id="longitude" placeholder="91.7362" step="any" />
+              <div class="error-msg" id="lngErr">Enter a valid longitude.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-section" style="margin-bottom:0;">
+          <div class="form-section-label">Description</div>
+          <div class="form-group">
+            <label class="form-label" for="description">About this PG</label>
+            <textarea class="form-textarea" id="description" placeholder="Describe the PG – rooms, amenities, proximity to campus, food options, rules, etc."></textarea>
+          </div>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <span id="submitLabel">Publish PG Listing →</span>
+        </button>
+
+      </form>
+
+      <div class="tip-box">
+        <strong>💡 Tip:</strong> Listings with a good description and accurate location get <strong>3× more enquiries</strong>. Right-click on Google Maps to copy precise coordinates.
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <span class="toast-icon" id="toastIcon">✅</span>
+    <span id="toastMsg">Done!</span>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    /* ── Gender pill selector ── */
+    function selectGender(el) {
+      document.querySelectorAll('.gender-pill').forEach(p => p.classList.remove('selected'));
+      el.classList.add('selected');
+      document.getElementById('gender').value = el.dataset.val;
+    }
+
+    /* ── Auth guard ── */
+    (function checkAuth() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        document.getElementById('authGuard').classList.add('show');
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('submitBtn').style.opacity = '0.45';
+        document.getElementById('submitBtn').style.cursor = 'not-allowed';
+        document.getElementById('submitLabel').textContent = 'Login required to publish';
+      }
+    })();
+
+    /* ── Validation helpers ── */
+    function showErr(id, show) {
+      document.getElementById(id).classList.toggle('show', show);
+    }
+
+    /* ── Submit handler ── */
+    async function handleSubmitPG(e) {
+      e.preventDefault();
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showToast('⚠️ Please log in first.');
+        return;
+      }
+
+      const name      = document.getElementById('name').value.trim();
+      const area      = document.getElementById('area').value.trim();
+      const city      = document.getElementById('city').value.trim();
+      const price     = parseFloat(document.getElementById('price').value);
+      const latitude  = parseFloat(document.getElementById('latitude').value);
+      const longitude = parseFloat(document.getElementById('longitude').value);
+      const gender    = document.getElementById('gender').value;
+      const desc      = document.getElementById('description').value.trim();
+
+      let valid = true;
+
+      showErr('nameErr',  !name);          if (!name)  valid = false;
+      showErr('areaErr',  !area);          if (!area)  valid = false;
+      showErr('cityErr',  !city);          if (!city)  valid = false;
+      showErr('priceErr', !price || price < 1); if (!price || price < 1) valid = false;
+      showErr('latErr',   isNaN(latitude));  if (isNaN(latitude))  valid = false;
+      showErr('lngErr',   isNaN(longitude)); if (isNaN(longitude)) valid = false;
+
+      if (!valid) return;
+
+      const btn   = document.getElementById('submitBtn');
+      const label = document.getElementById('submitLabel');
+      btn.classList.add('loading');
+      label.textContent = 'Publishing…';
+
+      const payload = { name, area, city, latitude, longitude, price, gender_type: gender, description: desc };
+
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/v1/pgs', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await res.json();
+
+        if (res.status === 200 || res.status === 201) {
+          showToast('🎉 PG listed successfully!');
+          setTimeout(() => window.location.href = 'index.html', 1500);
+        } else {
+          showToast('❌ ' + (result.detail || 'Something went wrong.'));
+          btn.classList.remove('loading');
+          label.textContent = 'Publish PG Listing →';
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('❌ Server error. Try again.');
+        btn.classList.remove('loading');
+        label.textContent = 'Publish PG Listing →';
+      }
+    }
+  </script>
+</body>
+</html>
