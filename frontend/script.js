@@ -43,6 +43,7 @@ async function submitPG(e) {
     alert("Server error");
   }
 }
+
 async function loginUser(email, password) {
   try {
     const res = await fetch("https://pg-finder-production.up.railway.app/api/v1/auth/login", {
@@ -104,7 +105,6 @@ function updateNavbar() {
   })();
 
   if (user) {
-    // Show user avatar initial + name + logout
     const initial = (user.name || user.email || "U")[0].toUpperCase();
     nav.innerHTML = `
       <div class="nav-user">
@@ -208,10 +208,10 @@ function renderCards(data) {
       <div class="card-body">
         <div class="card-name">${pg.name}</div>
         <div class="card-location">📌 ${pg.area}, Guwahati</div>
-        <div class="card-tags">${pg.tags.slice(0, 3).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        <div class="card-tags">${(pg.tags || []).slice(0, 3).map(t => `<span class="tag">${t}</span>`).join('')}</div>
         <div class="card-footer">
-          <div class="price">₹${pg.price.toLocaleString()} <span>/month</span></div>
-          <div class="rating"><span class="stars">★</span> ${pg.rating} <span style="color:var(--muted)">(${pg.reviews})</span></div>
+          <div class="price">₹${Number(pg.price).toLocaleString()} <span>/month</span></div>
+          <div class="rating"><span class="stars">★</span> ${pg.rating || 0} <span style="color:var(--muted)">(${pg.reviews || 0})</span></div>
         </div>
       </div>
     </div>
@@ -263,20 +263,22 @@ function updateDist(el) {
 
 function openModal(id) {
   const pg = PGS.find(p => p.id === id);
+  if (!pg) return;
   document.getElementById('modalImg').src = pg.img;
   document.getElementById('modalName').textContent = pg.name;
   document.getElementById('modalLoc').textContent = `📌 ${pg.area}, Guwahati — ${pg.dist} km from campus`;
   document.getElementById('modalStats').innerHTML = `
-    <div class="modal-stat"><div class="modal-stat-val">₹${pg.price.toLocaleString()}</div><div class="modal-stat-key">Per Month</div></div>
-    <div class="modal-stat"><div class="modal-stat-val">${pg.rating} ★</div><div class="modal-stat-key">${pg.reviews} Reviews</div></div>
+    <div class="modal-stat"><div class="modal-stat-val">₹${Number(pg.price).toLocaleString()}</div><div class="modal-stat-key">Per Month</div></div>
+    <div class="modal-stat"><div class="modal-stat-val">${pg.rating || 0} ★</div><div class="modal-stat-key">${pg.reviews || 0} Reviews</div></div>
     <div class="modal-stat"><div class="modal-stat-val">${pg.dist} km</div><div class="modal-stat-key">From Campus</div></div>
     <div class="modal-stat"><div class="modal-stat-val">${pg.gender === 'co-ed' ? 'Co-ed' : pg.gender === 'boys' ? 'Boys' : 'Girls'}</div><div class="modal-stat-key">Type</div></div>
   `;
-  document.getElementById('modalAmenities').innerHTML = pg.amenities.map(a => `<div class="amenity">${a}</div>`).join('');
-  document.getElementById('modalDesc').textContent = pg.desc;
+  document.getElementById('modalAmenities').innerHTML = (pg.amenities || []).map(a => `<div class="amenity">${a}</div>`).join('');
+  document.getElementById('modalDesc').textContent = pg.desc || "No description available";
   document.getElementById('modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
+
 function closeModal(e) {
   if (e.target === document.getElementById('modal')) closeModalDirect();
 }
@@ -305,28 +307,29 @@ async function loadPGs() {
   try {
     const res = await fetch("https://pg-finder-production.up.railway.app/api/v1/pgs");
     const data = await res.json();
+
+    // ✅ FIXED: safe mapping with all fallback values
     PGS = data.items.map(pg => ({
       id: pg.id,
       name: pg.name,
       area: pg.area,
       gender: pg.gender_type,
-      price: parseFloat(pg.price),
-
-      latitude: pg.latitude,      // ✅ ADD THIS
-      longitude: pg.longitude,    // ✅ ADD THIS
-
-      dist: 0.5,
-      rating: pg.rating,
-      reviews: pg.total_reviews,
-      tags: ["WiFi"],
-      amenities: [],
-      desc: pg.description || "No description",
+      price: parseFloat(pg.price) || 0,
+      latitude: pg.latitude,
+      longitude: pg.longitude,
+      dist: 1.0,
+      rating: pg.rating || 0,
+      reviews: pg.total_reviews || 0,
+      tags: pg.tags || ["WiFi", "Food"],           // ✅ safe fallback
+      amenities: pg.amenities || [],               // ✅ safe fallback
+      desc: pg.description || "No description available",
       img: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80"
     }));
+
     renderCards(PGS);
   } catch (err) {
-    // fallback to static data silently
-    renderCards(PGS);
+    console.error("Failed to load PGs from API, using static data:", err);
+    renderCards(PGS); // fallback to static data
   }
 }
 
@@ -338,17 +341,13 @@ updateNavbar();
 let map;
 
 function showMapView() {
-  console.log("MAP CLICKED");
-
   const listings = document.querySelector(".listings");
   const sidebar = document.querySelector(".sidebar");
   const mapDiv = document.getElementById("map");
 
-  // Hide sidebar + listings
   if (listings) listings.style.display = "none";
   if (sidebar) sidebar.style.display = "none";
 
-  // Show map full width
   mapDiv.style.display = "block";
   mapDiv.style.width = "100%";
 
@@ -371,6 +370,7 @@ function showListView() {
 
   mapDiv.style.display = "none";
 }
+
 function initMap() {
   map = L.map('map').setView([26.1445, 91.7362], 13);
 
@@ -380,9 +380,10 @@ function initMap() {
 
   addMarkers();
 }
+
 function addMarkers() {
   if (!PGS || PGS.length === 0) {
-    console.warn("No PG data available");
+    console.warn("No PG data available for map markers");
     return;
   }
 
@@ -391,6 +392,6 @@ function addMarkers() {
 
     L.marker([pg.latitude, pg.longitude])
       .addTo(map)
-      .bindPopup(`<b>${pg.name}</b><br>₹${pg.price}`);
+      .bindPopup(`<b>${pg.name}</b><br>₹${Number(pg.price).toLocaleString()}`);
   });
 }
