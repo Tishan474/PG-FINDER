@@ -20,7 +20,7 @@ async function submitPG(e) {
   };
 
   try {
-    const res = await fetch("http://127.0.0.1:8000/api/v1/pgs", {
+    const res = await fetch("https://pg-finder-production.up.railway.app/api/v1/pgs", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -45,7 +45,7 @@ async function submitPG(e) {
 }
 async function loginUser(email, password) {
   try {
-    const res = await fetch("http://127.0.0.1:8000/api/v1/auth/login", {
+    const res = await fetch("https://pg-finder-production.up.railway.app/api/v1/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
@@ -68,7 +68,7 @@ async function loginUser(email, password) {
 
 async function registerUser(name, email, password) {
   try {
-    const res = await fetch("http://127.0.0.1:8000/api/v1/auth/register", {
+    const res = await fetch("https://pg-finder-production.up.railway.app/api/v1/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password, role: "user" })
@@ -303,7 +303,7 @@ function showToast(msg) {
 // ─── Init ────────────────────────────────────────────────────────
 async function loadPGs() {
   try {
-    const res = await fetch("http://127.0.0.1:8000/api/v1/pgs");
+    const res = await fetch("https://pg-finder-production.up.railway.app/api/v1/pgs");
     const data = await res.json();
     PGS = data.items.map(pg => ({
       id: pg.id,
