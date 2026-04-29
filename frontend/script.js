@@ -436,10 +436,13 @@ function showErr(id, show) {
  
 async function handleSubmitPG(e) {
   e.preventDefault();
- 
+
   const token = localStorage.getItem('token');
-  if (!token) { showToast('⚠️ Please log in first.'); return; }
- 
+  if (!token) {
+    showToast('⚠️ Please log in first.');
+    return;
+  }
+
   const name      = document.getElementById('name').value.trim();
   const area      = document.getElementById('area').value.trim();
   const city      = document.getElementById('city').value.trim();
@@ -449,60 +452,57 @@ async function handleSubmitPG(e) {
   const longitude = parseFloat(document.getElementById('longitude').value);
   const gender    = document.getElementById('gender').value;
   const desc      = document.getElementById('description').value.trim();
- 
-  // Basic phone validation — must be 10-15 digits
-  const phoneValid = /^[0-9]{10,15}$/.test(phone.replace(/[\s\-\+]/g, ''));
- 
-  let valid = true;
-  showErr('nameErr',  !name);                if (!name)              valid = false;
-  showErr('areaErr',  !area);                if (!area)              valid = false;
-  showErr('cityErr',  !city);                if (!city)              valid = false;
-  showErr('phoneErr', !phoneValid);          if (!phoneValid)        valid = false;
-  showErr('priceErr', !price || price < 1);  if (!price || price<1)  valid = false;
-  showErr('latErr',   isNaN(latitude));      if (isNaN(latitude))    valid = false;
-  showErr('lngErr',   isNaN(longitude));     if (isNaN(longitude))   valid = false;
-  if (!valid) return;
- 
-  if (uploadedPhotos.length === 0) {
-    const go = confirm('No photos added. Listings with photos get 3× more enquiries. Continue anyway?');
-    if (!go) return;
+
+  // Basic validation
+  if (!name || !area || !city || !price || isNaN(latitude) || isNaN(longitude)) {
+    showToast('⚠️ Please fill all required fields correctly.');
+    return;
   }
- 
+
   const btn   = document.getElementById('submitBtn');
   const label = document.getElementById('submitLabel');
+
   btn.classList.add('loading');
   label.textContent = 'Publishing…';
- 
-  // Build FormData — sends text fields + photo files together
-  const formData = new FormData();
-  formData.append('name',        name);
-  formData.append('area',        area);
-  formData.append('city',        city);
-  formData.append('phone',       phone);   // ← owner contact number
-  formData.append('price',       price);
-  formData.append('latitude',    latitude);
-  formData.append('longitude',   longitude);
-  formData.append('gender_type', gender);
-  formData.append('description', desc);
-  uploadedPhotos.forEach(({ file }) => formData.append('photos', file));
- 
+
+  // ✅ JSON DATA (FIXES 422 ERROR)
+  const data = {
+    name: name,
+    area: area,
+    city: city,
+    phone: phone,
+    price: price,
+    latitude: latitude,
+    longitude: longitude,
+    gender_type: gender,
+    description: desc,
+
+    // ✅ REQUIRED
+    amenity_ids: []
+  };
+
   try {
-    const res    = await fetch(`${API}/api/v1/pgs`, {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + token },
-      // ⚠️ NO Content-Type header — browser sets it automatically for FormData
-      body: formData
+    const res = await fetch("https://pg-finder-production.up.railway.app/api/v1/pgs", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify(data)
     });
+
     const result = await res.json();
- 
+
     if (res.status === 200 || res.status === 201) {
       showToast('🎉 PG listed successfully!');
       setTimeout(() => window.location.href = 'index.html', 1500);
     } else {
-      showToast('❌ ' + (result.detail || 'Something went wrong.'));
+      console.error(result);
+      showToast('❌ ' + (result.detail || JSON.stringify(result)));
       btn.classList.remove('loading');
       label.textContent = 'Publish PG Listing →';
     }
+
   } catch (err) {
     console.error(err);
     showToast('❌ Server error. Try again.');
