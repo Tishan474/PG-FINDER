@@ -331,31 +331,48 @@ function showListView() {
 }
  
 async function loadMapMarkers() {
-  // Clear old markers
   mapMarkers.forEach(m => m.remove());
   mapMarkers = [];
- 
+
   let pgs = [];
- 
+
   try {
-    // ✅ Fetch from backend map endpoint — no cache so new PGs always appear
-    const res  = await fetch(`${API}/api/v1/pgs/map`, { cache: 'no-store' });
-    pgs = await res.json();
+    // ❌ REMOVE /map endpoint
+    const res  = await fetch(`${API}/api/v1/pgs`, { cache: 'no-store' });
+    const data = await res.json();
+
+    pgs = data.items || [];
+
   } catch (err) {
-    console.warn("Map API failed, using loaded PGS:", err);
-    pgs = PGS.filter(pg => pg.latitude && pg.longitude).map(pg => ({
-      id: pg.id, name: pg.name,
-      latitude: pg.latitude, longitude: pg.longitude,
-      price: pg.price, gender_type: pg.gender,
-      rating: pg.rating, area: pg.area,
-      city: "Guwahati", cover_photo: pg.img,
-    }));
+    console.warn("API failed, using local PGS:", err);
+    pgs = PGS;
   }
- 
+
   if (!pgs || pgs.length === 0) {
     showToast('⚠️ No PGs found on map.');
     return;
   }
+
+  const bounds = [];
+
+  pgs.forEach(pg => {
+    const lat = Number(pg.latitude);
+    const lng = Number(pg.longitude);
+
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    const marker = L.marker([lat, lng])
+      .addTo(mapInstance)
+      .bindPopup(`<b>${pg.name}</b><br>₹${parseInt(pg.price).toLocaleString()}`);
+
+    mapMarkers.push(marker);
+    bounds.push([lat, lng]);
+  });
+
+  if (bounds.length > 0) {
+    mapInstance.fitBounds(bounds, { padding: [40, 40] });
+  }
+}
  
   const bounds = [];
  
