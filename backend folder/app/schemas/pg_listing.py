@@ -29,7 +29,7 @@ class PGListingCreate(BaseModel):
     gender_type: GenderType
     amenity_ids: List[int] = []
     photos: List[str] = []
-    phone: Optional[str] = None       # owner contact number          # ← photo URLs saved once on create
+    phone: Optional[str] = None
  
     @field_validator("latitude")
     @classmethod
@@ -86,8 +86,8 @@ class PGListingResponse(BaseModel):
     description: Optional[str]
     area: str
     city: str
-    latitude: float         # ← ADD: needed for map markers
-    longitude: float        # ← ADD: needed for map markers
+    latitude: float
+    longitude: float
     price: Decimal
     gender_type: GenderType
     rating: float
@@ -95,7 +95,8 @@ class PGListingResponse(BaseModel):
     created_by: int
     created_at: datetime
     amenities: List[AmenityResponse] = []
-    photos: List[str] = []  # ← ADD: list of image URLs
+    photos: List[str] = []
+    phone: Optional[str] = None        # ← ADDED: was missing, caused 422
     distance_km: Optional[float] = None
  
     model_config = {"from_attributes": True}
@@ -156,7 +157,7 @@ class MapPGResponse(BaseModel):
     rating: float
     area: str
     city: str
-    cover_photo: Optional[str] = None   # ← ADD: first photo for map popup
+    cover_photo: Optional[str] = None
     distance_km: Optional[float] = None
  
     model_config = {"from_attributes": True}
