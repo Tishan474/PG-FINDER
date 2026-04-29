@@ -569,5 +569,4 @@ function removePhoto(index) {
 // ─── Init ─────────────────────────────────────────────────────────
 if (document.getElementById("grid")) loadPGs();
 updateNavbar();
- 
 
