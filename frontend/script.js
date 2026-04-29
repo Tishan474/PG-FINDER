@@ -99,13 +99,17 @@ async function loadPGs() {
   try {
     const res  = await fetch(`${API}/api/v1/pgs`, { cache: 'no-store' });
     const data = await res.json();
- 
+
     if (!data.items || data.items.length === 0) {
       PGS = FALLBACK_PGS;
       renderCards(PGS);
+
+      // ✅ ADD THIS
+      if (map) addMarkers();
+
       return;
     }
- 
+
     PGS = data.items.map(pg => ({
       id:        pg.id,
       name:      pg.name,
@@ -115,23 +119,32 @@ async function loadPGs() {
       dist:      pg.distance_km || 0.5,
       rating:    parseFloat(pg.rating) || 0,
       reviews:   pg.total_reviews || 0,
-      latitude:  parseFloat(pg.latitude),
-      longitude: parseFloat(pg.longitude),
-      phone:     pg.phone || '',            // ← owner contact number
+
+      // ✅ KEEP THIS (GOOD)
+      latitude:  Number(pg.latitude),
+      longitude: Number(pg.longitude),
+
+      phone:     pg.phone || '',
       tags:      pg.amenities?.map(a => a.name).slice(0, 4) || ["WiFi"],
       amenities: pg.amenities?.map(a => `🏠 ${a.name}`) || [],
       desc:      pg.description || "No description provided.",
-      // ✅ FIX: use real uploaded photo, fall back to placeholder
       img: (pg.photos && pg.photos.length > 0)
            ? pg.photos[0]
            : "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80"
     }));
- 
+
     renderCards(PGS);
+
+    // ✅ ADD THIS (MOST IMPORTANT LINE)
+    if (map) addMarkers();
+
   } catch (err) {
     console.warn("Backend unavailable, using sample data:", err);
     PGS = FALLBACK_PGS;
     renderCards(PGS);
+
+    // ✅ ADD THIS
+    if (map) addMarkers();
   }
 }
  
