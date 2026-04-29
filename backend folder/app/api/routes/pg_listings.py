@@ -28,7 +28,7 @@ UPLOAD_DIR      = Path("uploads/pg_photos")
 ALLOWED_TYPES   = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 MAX_FILE_SIZE   = 5 * 1024 * 1024   # 5 MB
 MAX_PHOTOS      = 8
-BASE_URL        = "http://127.0.0.1:8000"  # change to your domain in production
+BASE_URL        = "https://pg-finder-production.up.railway.app"  # change to your domain in production
  
  
 async def save_photos(photos: List[UploadFile]) -> List[str]:
