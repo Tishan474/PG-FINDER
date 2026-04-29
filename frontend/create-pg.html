@@ -105,6 +105,29 @@
             </div>
           </div>
         </div>
+            <!-- Photos -->
+        <div class="form-section">
+          <div class="form-section-label">Photos</div>
+ 
+          <div class="photo-drop-zone" id="dropZone"
+            ondragover="handleDragOver(event)"
+            ondragleave="handleDragLeave(event)"
+            ondrop="handleDrop(event)"
+            onclick="document.getElementById('photoFileInput').click()">
+            <span class="drop-icon">🖼️</span>
+            <div class="drop-title">Drag &amp; drop photos here</div>
+            <div class="drop-sub">Upload up to 8 photos · JPG, PNG, WEBP · Max 5 MB each<br>First photo will be the cover image shown on the listing card.</div>
+            <label class="drop-btn" onclick="event.stopPropagation(); document.getElementById('photoFileInput').click()">
+              📁 Browse files
+            </label>
+            <input type="file" id="photoFileInput" accept="image/*" multiple onchange="handleFileSelect(event)" />
+          </div>
+ 
+          <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+          <div class="photo-count-label" id="photoCountLabel" style="display:none;">
+            <span id="photoCountNum">0</span> / 8 photos added
+          </div>
+        </div>
 
         <!-- Description -->
         <div class="form-section" style="margin-bottom:0;">
@@ -137,95 +160,5 @@
   </div>
 
   <script src="script.js"></script>
-  <script>
-    /* ── Gender pill selector ── */
-    function selectGender(el) {
-      document.querySelectorAll('.gender-pill').forEach(p => p.classList.remove('selected'));
-      el.classList.add('selected');
-      document.getElementById('gender').value = el.dataset.val;
-    }
-
-    /* ── Auth guard ── */
-    (function checkAuth() {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        document.getElementById('authGuard').classList.add('show');
-        document.getElementById('submitBtn').disabled = true;
-        document.getElementById('submitBtn').style.opacity = '0.45';
-        document.getElementById('submitBtn').style.cursor = 'not-allowed';
-        document.getElementById('submitLabel').textContent = 'Login required to publish';
-      }
-    })();
-
-    /* ── Validation helpers ── */
-    function showErr(id, show) {
-      document.getElementById(id).classList.toggle('show', show);
-    }
-
-    /* ── Submit handler ── */
-    async function handleSubmitPG(e) {
-      e.preventDefault();
-
-      const token = localStorage.getItem('token');
-      if (!token) {
-        showToast('⚠️ Please log in first.');
-        return;
-      }
-
-      const name      = document.getElementById('name').value.trim();
-      const area      = document.getElementById('area').value.trim();
-      const city      = document.getElementById('city').value.trim();
-      const price     = parseFloat(document.getElementById('price').value);
-      const latitude  = parseFloat(document.getElementById('latitude').value);
-      const longitude = parseFloat(document.getElementById('longitude').value);
-      const gender    = document.getElementById('gender').value;
-      const desc      = document.getElementById('description').value.trim();
-
-      let valid = true;
-
-      showErr('nameErr',  !name);          if (!name)  valid = false;
-      showErr('areaErr',  !area);          if (!area)  valid = false;
-      showErr('cityErr',  !city);          if (!city)  valid = false;
-      showErr('priceErr', !price || price < 1); if (!price || price < 1) valid = false;
-      showErr('latErr',   isNaN(latitude));  if (isNaN(latitude))  valid = false;
-      showErr('lngErr',   isNaN(longitude)); if (isNaN(longitude)) valid = false;
-
-      if (!valid) return;
-
-      const btn   = document.getElementById('submitBtn');
-      const label = document.getElementById('submitLabel');
-      btn.classList.add('loading');
-      label.textContent = 'Publishing…';
-
-      const payload = { name, area, city, latitude, longitude, price, gender_type: gender, description: desc };
-
-      try {
-        const res = await fetch('http://127.0.0.1:8000/api/v1/pgs', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-          },
-          body: JSON.stringify(payload)
-        });
-
-        const result = await res.json();
-
-        if (res.status === 200 || res.status === 201) {
-          showToast('🎉 PG listed successfully!');
-          setTimeout(() => window.location.href = 'index.html', 1500);
-        } else {
-          showToast('❌ ' + (result.detail || 'Something went wrong.'));
-          btn.classList.remove('loading');
-          label.textContent = 'Publish PG Listing →';
-        }
-      } catch (err) {
-        console.error(err);
-        showToast('❌ Server error. Try again.');
-        btn.classList.remove('loading');
-        label.textContent = 'Publish PG Listing →';
-      }
-    }
-  </script>
 </body>
 </html>
