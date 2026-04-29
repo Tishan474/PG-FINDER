@@ -477,7 +477,7 @@ async function handleSubmitPG(e) {
     amenity_ids: []
   };
   try {
-    const res = await fetch("https://pg-finder-production.up.railway.app", {
+    const res = await fetch(`${API}/api/v1/pgs`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
