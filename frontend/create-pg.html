@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -8,47 +9,44 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
+ 
   <!-- NAV -->
   <nav>
     <div class="logo">Nest<span>Near</span></div>
     <div class="nav-links">
       <a href="index.html">Explore</a>
-      <a href="index.html" onclick="showMapView && showMapView(); return true;">Map View</a>
+      <a href="index.html">Map View</a>
       <a href="create-pg.html" style="color: var(--accent);">List your PG</a>
     </div>
     <div id="nav-auth" class="nav-actions"></div>
   </nav>
-
+ 
   <div class="create-page">
-
-    <!-- Header -->
+ 
     <div class="page-header">
       <div class="page-badge"><span class="dot"></span> Free to list</div>
       <div class="page-title">List your <em>PG on NestNear</em></div>
       <p class="page-sub">Reach hundreds of students looking for accommodation near campus.</p>
     </div>
-
-    <!-- Form card -->
+ 
     <div class="form-card">
-
-      <!-- Auth guard (shown if not logged in) -->
+ 
       <div class="auth-guard" id="authGuard">
         ⚠️ You need to <a href="login.html">log in</a> or <a href="signup.html">sign up</a> before listing a PG.
       </div>
-
+ 
       <form id="pgForm" onsubmit="handleSubmitPG(event)" novalidate>
-
+ 
         <!-- Basic Info -->
         <div class="form-section">
           <div class="form-section-label">Basic Information</div>
-
+ 
           <div class="form-group">
             <label class="form-label" for="name">PG Name</label>
             <input class="form-input" type="text" id="name" placeholder="e.g. Sunrise PG Home" autocomplete="off" />
             <div class="error-msg" id="nameErr">Please enter a PG name.</div>
           </div>
-
+ 
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" for="area">Area / Locality</label>
@@ -61,12 +59,22 @@
               <div class="error-msg" id="cityErr">Please enter a city.</div>
             </div>
           </div>
+ 
+          <!-- ✅ NEW: Phone number field -->
+          <div class="form-group">
+            <label class="form-label" for="phone">Owner Phone Number</label>
+            <div class="input-wrap">
+              <span class="input-prefix">📞</span>
+              <input class="form-input" type="tel" id="phone" placeholder="e.g. 9876543210" maxlength="15" />
+            </div>
+            <div class="error-msg" id="phoneErr">Please enter a valid phone number.</div>
+          </div>
         </div>
-
+ 
         <!-- Pricing & Type -->
         <div class="form-section">
           <div class="form-section-label">Pricing &amp; Type</div>
-
+ 
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" for="price">Monthly Rent (₹)</label>
@@ -87,11 +95,10 @@
             </div>
           </div>
         </div>
-
+ 
         <!-- Location -->
         <div class="form-section">
           <div class="form-section-label">Location Coordinates</div>
-
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" for="latitude">Latitude</label>
@@ -105,10 +112,10 @@
             </div>
           </div>
         </div>
-            <!-- Photos -->
+ 
+        <!-- Photos -->
         <div class="form-section">
           <div class="form-section-label">Photos</div>
- 
           <div class="photo-drop-zone" id="dropZone"
             ondragover="handleDragOver(event)"
             ondragleave="handleDragLeave(event)"
@@ -122,13 +129,12 @@
             </label>
             <input type="file" id="photoFileInput" accept="image/*" multiple onchange="handleFileSelect(event)" />
           </div>
- 
           <div class="photo-preview-grid" id="photoPreviewGrid"></div>
           <div class="photo-count-label" id="photoCountLabel" style="display:none;">
             <span id="photoCountNum">0</span> / 8 photos added
           </div>
         </div>
-
+ 
         <!-- Description -->
         <div class="form-section" style="margin-bottom:0;">
           <div class="form-section-label">Description</div>
@@ -137,28 +143,27 @@
             <textarea class="form-textarea" id="description" placeholder="Describe the PG – rooms, amenities, proximity to campus, food options, rules, etc."></textarea>
           </div>
         </div>
-
+ 
         <div class="form-divider"></div>
-
+ 
         <button type="submit" class="btn-submit" id="submitBtn">
           <span id="submitLabel">Publish PG Listing →</span>
         </button>
-
+ 
       </form>
-
+ 
       <div class="tip-box">
         <strong>💡 Tip:</strong> Listings with a good description and accurate location get <strong>3× more enquiries</strong>. Right-click on Google Maps to copy precise coordinates.
       </div>
-
+ 
     </div>
   </div>
-
-  <!-- TOAST -->
+ 
   <div class="toast" id="toast">
     <span class="toast-icon" id="toastIcon">✅</span>
     <span id="toastMsg">Done!</span>
   </div>
-
+ 
   <script src="script.js"></script>
 </body>
 </html>
