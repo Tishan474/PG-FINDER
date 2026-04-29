@@ -395,3 +395,197 @@ function addMarkers() {
       .bindPopup(`<b>${pg.name}</b><br>₹${Number(pg.price).toLocaleString()}`);
   });
 }
+ /* ── Gender pill selector ── */
+    function selectGender(el) {
+      document.querySelectorAll('.gender-pill').forEach(p => p.classList.remove('selected'));
+      el.classList.add('selected');
+      document.getElementById('gender').value = el.dataset.val;
+    }
+
+    /* ── Auth guard ── */
+    (function checkAuth() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        document.getElementById('authGuard').classList.add('show');
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('submitBtn').style.opacity = '0.45';
+        document.getElementById('submitBtn').style.cursor = 'not-allowed';
+        document.getElementById('submitLabel').textContent = 'Login required to publish';
+      }
+    })();
+
+    /* ── Validation helpers ── */
+    function showErr(id, show) {
+      document.getElementById(id).classList.toggle('show', show);
+    }
+
+    /* ── Submit handler ── */
+    async function handleSubmitPG(e) {
+      e.preventDefault();
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showToast('⚠️ Please log in first.');
+        return;
+      }
+
+      const name      = document.getElementById('name').value.trim();
+      const area      = document.getElementById('area').value.trim();
+      const city      = document.getElementById('city').value.trim();
+      const price     = parseFloat(document.getElementById('price').value);
+      const latitude  = parseFloat(document.getElementById('latitude').value);
+      const longitude = parseFloat(document.getElementById('longitude').value);
+      const gender    = document.getElementById('gender').value;
+      const desc      = document.getElementById('description').value.trim();
+
+      let valid = true;
+
+      showErr('nameErr',  !name);          if (!name)  valid = false;
+      showErr('areaErr',  !area);          if (!area)  valid = false;
+      showErr('cityErr',  !city);          if (!city)  valid = false;
+      showErr('priceErr', !price || price < 1); if (!price || price < 1) valid = false;
+      showErr('latErr',   isNaN(latitude));  if (isNaN(latitude))  valid = false;
+      showErr('lngErr',   isNaN(longitude)); if (isNaN(longitude)) valid = false;
+
+      if (!valid) return;
+
+      const btn   = document.getElementById('submitBtn');
+      const label = document.getElementById('submitLabel');
+      btn.classList.add('loading');
+      label.textContent = 'Publishing…';
+
+      const payload = { name, area, city, latitude, longitude, price, gender_type: gender, description: desc };
+
+      try {
+        const res = await fetch('https://pg-finder-production.up.railway.app/api/v1/pgs', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await res.json();
+
+        if (res.status === 200 || res.status === 201) {
+          showToast('🎉 PG listed successfully!');
+          setTimeout(() => window.location.href = 'index.html', 1500);
+        } else {
+          showToast('❌ ' + (result.detail || 'Something went wrong.'));
+          btn.classList.remove('loading');
+          label.textContent = 'Publish PG Listing →';
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('❌ Server error. Try again.');
+        btn.classList.remove('loading');
+        label.textContent = 'Publish PG Listing →';
+      }
+    }
+   /* ══════════════════════════════════════
+       PHOTO UPLOAD — Drag & Drop Logic
+    ══════════════════════════════════════ */
+    const MAX_PHOTOS = 8;
+    const MAX_SIZE_MB = 5;
+    let uploadedPhotos = []; // Array of { file, dataUrl }
+ 
+    /* Drag events */
+    function handleDragOver(e) {
+      e.preventDefault();
+      document.getElementById('dropZone').classList.add('drag-over');
+    }
+    function handleDragLeave(e) {
+      document.getElementById('dropZone').classList.remove('drag-over');
+    }
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('dropZone').classList.remove('drag-over');
+      processFiles(Array.from(e.dataTransfer.files));
+    }
+ 
+    /* File input change */
+    function handleFileSelect(e) {
+      processFiles(Array.from(e.target.files));
+      e.target.value = ''; // reset so same file can be re-added if removed
+    }
+ 
+    /* Core: validate + read files */
+    function processFiles(files) {
+      const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      const remaining = MAX_PHOTOS - uploadedPhotos.length;
+ 
+      if (remaining <= 0) {
+        showToast('⚠️ Maximum 8 photos allowed.');
+        return;
+      }
+ 
+      let added = 0;
+      files.slice(0, remaining).forEach(file => {
+        if (!allowed.includes(file.type)) {
+          showToast('⚠️ Only JPG, PNG, WEBP allowed.');
+          return;
+        }
+        if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+          showToast(`⚠️ "${file.name}" exceeds 5 MB.`);
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          uploadedPhotos.push({ file, dataUrl: ev.target.result });
+          renderPreviews();
+          added++;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+ 
+    /* Render preview thumbnails */
+    function renderPreviews() {
+      const grid = document.getElementById('photoPreviewGrid');
+      const countLabel = document.getElementById('photoCountLabel');
+      const countNum = document.getElementById('photoCountNum');
+ 
+      grid.innerHTML = '';
+      uploadedPhotos.forEach((photo, index) => {
+        const item = document.createElement('div');
+        item.className = 'preview-item';
+        item.innerHTML = `
+          <img src="${photo.dataUrl}" alt="PG photo ${index + 1}" />
+          ${index === 0 ? '<span class="preview-badge">Cover</span>' : ''}
+          <button class="preview-remove" onclick="removePhoto(${index})" title="Remove photo">✕</button>
+        `;
+        grid.appendChild(item);
+      });
+ 
+      const hasPhotos = uploadedPhotos.length > 0;
+      countLabel.style.display = hasPhotos ? 'block' : 'none';
+      countNum.textContent = uploadedPhotos.length;
+    }
+ 
+    /* Remove a specific photo */
+    function removePhoto(index) {
+      uploadedPhotos.splice(index, 1);
+      renderPreviews();
+      showToast('🗑️ Photo removed.');
+    }
+ 
+    /* Extend submit to include photo count */
+    const _originalSubmit = window.handleSubmitPG;
+    window.handleSubmitPG = async function(e) {
+      e.preventDefault();
+ 
+      // Optional: warn if no photos
+      if (uploadedPhotos.length === 0) {
+        const proceed = confirm('No photos added. Listings with photos get 3× more enquiries. Continue anyway?');
+        if (!proceed) return;
+      }
+ 
+      // You can append photos to FormData here when your backend supports it:
+      // const formData = new FormData();
+      // uploadedPhotos.forEach((p, i) => formData.append(`photo_${i}`, p.file));
+ 
+      // For now, call the original handler (JSON payload)
+      await _originalSubmit.call(this, e);
+    };
+
